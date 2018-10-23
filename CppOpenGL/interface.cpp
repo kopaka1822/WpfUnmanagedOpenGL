@@ -65,6 +65,7 @@ DWORD WINAPI ha(void *d)
 INT_PTR create_context(INT_PTR hWnd, int width, int height)
 {
 	// http://www.rohitab.com/discuss/topic/38722-wpf-and-opengl/
+	// https://docs.microsoft.com/de-de/dotnet/framework/wpf/advanced/walkthrough-hosting-a-win32-control-in-wpf)
 	s_windowHandle = CreateWindowEx(
 		0, // style
 		"static",
@@ -75,14 +76,14 @@ INT_PTR create_context(INT_PTR hWnd, int width, int height)
 		width, // width
 		height, // height
 		reinterpret_cast<HWND>(hWnd),
-		(HMENU)0x00000002, // menu (magic number: https://docs.microsoft.com/de-de/dotnet/framework/wpf/advanced/walkthrough-hosting-a-win32-control-in-wpf)
+		nullptr, // menu
 		nullptr, // hinstance
 		nullptr // lparam
 	);
 
 	// initialize everything
 	HANDLE hThread = CreateThread(nullptr, 0, &ha, s_windowHandle, 0, nullptr);
-	//ha(newHwnd); // does not work
+	//init_gl(); // does not work
 
 	return reinterpret_cast<INT_PTR>(s_windowHandle);
 }
@@ -94,6 +95,7 @@ void init_gl()
 
 void render()
 {
+	glViewport(0, 0, 100, 100);
 	glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 

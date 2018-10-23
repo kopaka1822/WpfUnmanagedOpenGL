@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfUnmanagedOpenGL"
         mc:Ignorable="d"
+        Loaded="OnLoaded"
         Title="MainWindow" Height="450" Width="800">
     <DockPanel>
         <Menu DockPanel.Dock="Top">
@@ -14,6 +15,7 @@
             </MenuItem>
             <MenuItem Header="Tools"/>
         </Menu>
-        <local:OpenGlHost DockPanel.Dock="Bottom"/>
+        <!--<local:OpenGlHost DockPanel.Dock="Bottom"/>-->
+        <Border x:Name="BorderHost" Background="Blue"/>
     </DockPanel>
 </Window>

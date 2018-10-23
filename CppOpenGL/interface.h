@@ -16,6 +16,6 @@ init_gl();
 
 extern "C"
 __declspec(dllexport)
-void
+bool
 __cdecl
 render();

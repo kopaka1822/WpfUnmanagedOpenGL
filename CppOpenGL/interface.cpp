@@ -43,13 +43,21 @@ DWORD WINAPI ha(void *d)
 		return 2;
 	}
 	
+	// vsynch?
+	using PFNWGLSWAPINTERVALEXTPROC = BOOL(WINAPI * ) (int interval);
+	const auto wglSwapIntervalExt = reinterpret_cast<PFNWGLSWAPINTERVALEXTPROC>(wglGetProcAddress("wglSwapIntervalEXT"));
+	if(wglSwapIntervalExt)
+	{
+		// enable vsynch
+		wglSwapIntervalExt(1);
+	}
+
 	if (!gladLoadGL())
 	{
 		std::cerr << "gladLoadGL failed\n";
 		return 3;
 	}
 
-	// create new thread for opengl rendering
 	glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -59,6 +67,7 @@ DWORD WINAPI ha(void *d)
 		return 4;
 	}
 
+	while(render());
 	return 0;
 }
 
@@ -93,14 +102,19 @@ void init_gl()
 	ha(s_windowHandle);
 }
 
-void render()
+bool render()
 {
+	static float t = 1.0f;
 	glViewport(0, 0, 100, 100);
-	glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
+	glClearColor(0.0f, t, 0.0f, 1.0f);
+	t = 1.0f - t;
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	if(!SwapBuffers(s_deviceContext))
 	{
+		// window closed
 		std::cerr << "SwapBuffers failed\n";
+		return false;
 	}
+	return true;
 }

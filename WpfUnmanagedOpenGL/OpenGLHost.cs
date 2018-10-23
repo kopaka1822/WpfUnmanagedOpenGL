@@ -23,11 +23,14 @@ namespace WpfUnmanagedOpenGL
         private static extern void init_gl();
 
         [DllImport(DllFilePath, CallingConvention = CallingConvention.Cdecl)]
-        private static extern void render();
+        private static extern bool render();
+
+        [DllImport("user32.dll", EntryPoint = "DestroyWindow", CharSet = CharSet.Unicode)]
+        internal static extern bool DestroyWindow(IntPtr hwnd);
 
         private bool isLoaded = false;
 
-        private Border parent;
+        private readonly Border parent;
 
         public OpenGlHost(Border parent)
         {
@@ -65,7 +68,6 @@ namespace WpfUnmanagedOpenGL
         protected override void OnRender(DrawingContext drawingContext)
         {
             if (!isLoaded) return;
-            int a = 3;
             //init_gl();
             //base.OnRender(drawingContext);
             //render();
@@ -73,7 +75,7 @@ namespace WpfUnmanagedOpenGL
 
         protected override void DestroyWindowCore(HandleRef hwnd)
         {
-            // the host will destroy the handle
+            DestroyWindow(hwnd.Handle);
         }
     }
 }

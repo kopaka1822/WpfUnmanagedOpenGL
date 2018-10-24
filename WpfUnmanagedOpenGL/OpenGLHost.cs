@@ -21,9 +21,20 @@ namespace WpfUnmanagedOpenGL
         private const string DllFilePath = @"CppOpenGL.dll";
 
         [DllImport(DllFilePath, CallingConvention = CallingConvention.Cdecl)]
-        private static extern string get_error();
+        private static extern IntPtr get_error(out int length);
+
+        /// <summary>
+        /// wrapper for get_error()
+        /// </summary>
+        /// <returns>error string returned by get_error()</returns>
+        private static string GetDllError()
+        {
+            var ptr = get_error(out var length);
+            return ptr.Equals(IntPtr.Zero) ? "" : Marshal.PtrToStringAnsi(ptr, length);
+        }
 
         [DllImport(DllFilePath, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I1)]
         private static extern bool render();
 
         [DllImport(DllFilePath, CallingConvention = CallingConvention.Cdecl)]
@@ -169,6 +180,10 @@ namespace WpfUnmanagedOpenGL
 
         #endregion
 
+        // error callbacks (in case the openGL thread crashes)
+        public delegate void ErrorEvent(string message);
+        public event ErrorEvent Error;
+
         // host of the HwndHost
         private readonly Border parent;
 
@@ -205,7 +220,7 @@ namespace WpfUnmanagedOpenGL
 
                     // dll render call
                     if (!render())
-                        throw new Exception(get_error());
+                        throw new Exception(GetDllError());
 
                     if(!SwapBuffers(deviceContext))
                         throw new Win32Exception(Marshal.GetLastWin32Error());
@@ -213,7 +228,7 @@ namespace WpfUnmanagedOpenGL
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                Dispatcher.BeginInvoke(Error, e.Message);
             }
         }
 
@@ -244,7 +259,7 @@ namespace WpfUnmanagedOpenGL
 
             // dll call: initialize glad etc.
             if(!initialize())
-                throw new Exception(get_error());
+                throw new Exception(GetDllError());
         }
 
         /// <summary>
@@ -261,7 +276,7 @@ namespace WpfUnmanagedOpenGL
                 renderWidth = newWidth;
                 renderHeight = newHeight;
                 if (!resize(renderWidth, renderHeight))
-                    throw new Exception(get_error());
+                    throw new Exception(GetDllError());
             }
         }
 

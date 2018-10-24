@@ -4,9 +4,10 @@
 
 static std::string s_lastError;
 
-const char* get_error()
+const char* get_error(int& length)
 {
-	return s_lastError.c_str();
+	length = static_cast<int>(s_lastError.length());
+	return s_lastError.data();
 }
 
 void set_error(std::string error)

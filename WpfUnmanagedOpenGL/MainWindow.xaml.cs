@@ -27,7 +27,15 @@ namespace WpfUnmanagedOpenGL
 
         private void OnLoaded(object sender, RoutedEventArgs args)
         {
-            BorderHost.Child = new OpenGlHost(BorderHost);
+            var glHost = new OpenGlHost(BorderHost);
+            glHost.Error += GlHostOnError;
+            BorderHost.Child = glHost;
+        }
+
+        private void GlHostOnError(string message)
+        {
+            MessageBox.Show(this, message, "OpenGL Thread Error");
+            Close();
         }
     }
 }

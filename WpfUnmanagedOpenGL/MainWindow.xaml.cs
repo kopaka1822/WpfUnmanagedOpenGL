@@ -25,7 +25,6 @@ namespace WpfUnmanagedOpenGL
             InitializeComponent();
         }
 
-
         private void OnLoaded(object sender, RoutedEventArgs args)
         {
             BorderHost.Child = new OpenGlHost(BorderHost);

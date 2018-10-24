@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:WpfUnmanagedOpenGL"
         mc:Ignorable="d"
         Loaded="OnLoaded"
+        Background="#eee"
         Title="MainWindow" Height="450" Width="800">
     <DockPanel>
         <Menu DockPanel.Dock="Top">
@@ -15,9 +16,34 @@
             </MenuItem>
             <MenuItem Header="Tools"/>
         </Menu>
-        <Border 
-            x:Name="BorderHost" 
-            Background="Blue"
-        />
+
+        <Grid DockPanel.Dock="Bottom">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="200"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- OpenGL Host Element -->
+            <Border 
+                x:Name="BorderHost" 
+                Background="Black"
+            />
+
+            <GridSplitter 
+                Grid.Column="1"
+                Width="5"
+                HorizontalAlignment="Stretch"
+                Background="#e2e2e2"/>
+            
+            <TabControl
+                Grid.Column="2"
+                DockPanel.Dock="Left"
+                HorizontalAlignment="Stretch"
+                Background="#eee">
+                <TabItem Header="Tab1"/>
+                <TabItem Header="Tab2"/>
+            </TabControl>
+        </Grid>
     </DockPanel>
 </Window>

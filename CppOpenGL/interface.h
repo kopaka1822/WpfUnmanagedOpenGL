@@ -1,22 +1,32 @@
 #pragma once
 #include <string>
 
-extern "C"
-__declspec(dllexport)
-bool
-__cdecl
-initialize();
+#ifdef DLLFUNC
+#error DLLFUNC redefinition
+#endif
+#define DLLFUNC(return_type) extern "C" __declspec(dllexport) return_type __cdecl
 
-extern "C"
-__declspec(dllexport)
-bool
-__cdecl
-render();
+// \brief initializes the opengl functions (glad)
+// \return true on success
+DLLFUNC(bool) initialize();
 
-extern "C"
-__declspec(dllexport)
-const char*
-__cdecl
-get_error();
+// \brief main render logic for opengl
+// \return true on success
+DLLFUNC(bool) render();
 
+// \brief indicates that the size of the client area has changed. 
+//        Will be called after intitialize as well
+// \param width 
+// \param height 
+// \return true on success
+DLLFUNC(bool) resize(int width, int height);
+
+// \brief retrieves last error from set_error()
+// \return last error
+DLLFUNC(const char*) get_error();
+
+// \brief sets the get_error() return value
+// \param error
 void set_error(std::string error);
+
+#undef DLLFUNC

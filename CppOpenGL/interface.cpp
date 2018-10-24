@@ -1,5 +1,6 @@
 #include "interface.h"
 #include <glad/glad.h>
+#include <string>
 
 static std::string s_lastError;
 
@@ -25,11 +26,21 @@ bool initialize()
 
 bool render()
 {
-	static float t = 1.0f;
+	static float t = 0.0f;
 	glViewport(0, 0, 100, 100);
 	glClearColor(0.0f, t, 0.0f, 1.0f);
-	t = 1.0f - t;
+	t += 0.01f;
+	if (t > 1.0f) t -= 1.0f;
 	glClear(GL_COLOR_BUFFER_BIT);
 
+	return true;
+}
+
+bool resize(int width, int height)
+{
+	// glViewport should not be called with width or height zero
+	if (width == 0 || height == 0) return true;
+
+	glViewport(0, 0, width, height);
 	return true;
 }

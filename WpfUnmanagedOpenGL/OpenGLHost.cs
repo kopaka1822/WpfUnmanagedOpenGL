@@ -16,6 +16,8 @@ namespace WpfUnmanagedOpenGL
 {
     public class OpenGlHost : HwndHost
     {
+        #region Custom Dll
+
         private const string DllFilePath = @"CppOpenGL.dll";
 
         [DllImport(DllFilePath, CallingConvention = CallingConvention.Cdecl)]
@@ -26,6 +28,11 @@ namespace WpfUnmanagedOpenGL
 
         [DllImport(DllFilePath, CallingConvention = CallingConvention.Cdecl)]
         private static extern bool initialize();
+
+        [DllImport(DllFilePath, CallingConvention = CallingConvention.Cdecl)]
+        private static extern bool resize(int width, int height);
+
+        #endregion
 
         #region Windows DLL
 
@@ -76,18 +83,25 @@ namespace WpfUnmanagedOpenGL
         [StructLayout(LayoutKind.Sequential)]
         public struct PIXELFORMATDESCRIPTOR
         {
-            public void Init()
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="colorBits">Specifies the number of color bitplanes in each color buffer. For RGBA pixel types, it is the size of the color buffer, excluding the alpha bitplanes. For color-index pixels, it is the size of the color-index buffer.</param>
+            /// <param name="depthBits">Specifies the depth of the depth (z-axis) buffer.</param>
+            /// <param name="stencilBits">Specifies the depth of the stencil buffer.</param>
+            public void Init(byte colorBits, byte depthBits, byte stencilBits)
             {
                 nSize = (ushort)Marshal.SizeOf(typeof(PIXELFORMATDESCRIPTOR));
                 nVersion = 1;
                 dwFlags = PFD_FLAGS.PFD_DRAW_TO_WINDOW | PFD_FLAGS.PFD_SUPPORT_OPENGL | PFD_FLAGS.PFD_DOUBLEBUFFER;
                 iPixelType = PFD_PIXEL_TYPE.PFD_TYPE_RGBA;
-                cColorBits = 24;
+                cColorBits = colorBits;
                 cRedBits = cRedShift = cGreenBits = cGreenShift = cBlueBits = cBlueShift = 0;
                 cAlphaBits = cAlphaShift = 0;
                 cAccumBits = cAccumRedBits = cAccumGreenBits = cAccumBlueBits = cAccumAlphaBits = 0;
-                cDepthBits = 32;
-                cStencilBits = cAuxBuffers = 0;
+                cDepthBits = depthBits;
+                cStencilBits = stencilBits;
+                cAuxBuffers = 0;
                 iLayerType = PFD_LAYER_TYPES.PFD_MAIN_PLANE;
                 bReserved = 0;
                 dwLayerMask = dwVisibleMask = dwDamageMask = 0;
@@ -155,26 +169,42 @@ namespace WpfUnmanagedOpenGL
 
         #endregion
 
+        // host of the HwndHost
         private readonly Border parent;
+
+        // context creation
         private IntPtr hWnd = IntPtr.Zero;
-        private IntPtr deviceContext;
+        private IntPtr deviceContext = IntPtr.Zero;
+
+        // render thread (aynchronous openGL drawing)
         private Thread renderThread;
         private bool isRunning = true;
+
+        // helper to detect resize in render thread
+        int renderWidth = 0;
+        int renderHeight = 0;
 
         public OpenGlHost(Border parent)
         {
             this.parent = parent;
         }
 
+        /// <summary>
+        /// asynchronous thread for openGL rendering
+        /// </summary>
+        /// <param name="data">null (required for c# thread)</param>
         private void Render(object data)
         {
             try
             {
                 InitializeOpenGl();
+
                 while (isRunning)
                 {
+                    HandleResize();
+
                     // dll render call
-                    if(!render())
+                    if (!render())
                         throw new Exception(get_error());
 
                     if(!SwapBuffers(deviceContext))
@@ -187,12 +217,19 @@ namespace WpfUnmanagedOpenGL
             }
         }
 
+        /// <summary>
+        /// openGL initialization (pixel format and wgl context)
+        /// </summary>
         private void InitializeOpenGl()
         {
             deviceContext = GetDC(hWnd);
 
             PIXELFORMATDESCRIPTOR pfd = new PIXELFORMATDESCRIPTOR();
-            pfd.Init();
+            pfd.Init(
+                24, // color bits
+                24, // depth bits
+                8 // stencil bits
+            );
 
             var pixelFormat = ChoosePixelFormat(deviceContext, ref pfd);
             if (!SetPixelFormat(deviceContext, pixelFormat, ref pfd))
@@ -210,6 +247,29 @@ namespace WpfUnmanagedOpenGL
                 throw new Exception(get_error());
         }
 
+        /// <summary>
+        /// calls the dll resize() function if the client area was resized
+        /// </summary>
+        private void HandleResize()
+        {
+            // viewport resize?
+            int newWidth = (int)ActualWidth;
+            int newHeight = (int)ActualHeight;
+
+            if (renderWidth != newWidth || renderHeight != newHeight)
+            {
+                renderWidth = newWidth;
+                renderHeight = newHeight;
+                if (!resize(renderWidth, renderHeight))
+                    throw new Exception(get_error());
+            }
+        }
+
+        /// <summary>
+        /// construction of the child window
+        /// </summary>
+        /// <param name="hwndParent">handle of parent window (border)</param>
+        /// <returns></returns>
         protected override HandleRef BuildWindowCore(HandleRef hwndParent)
         {
             hWnd = CreateWindowEx(
@@ -219,8 +279,8 @@ namespace WpfUnmanagedOpenGL
                 WS_CHILD | WS_VISIBLE, // style
                 0, // x
                 0, // y
-                (int) parent.ActualWidth, // width
-                (int) parent.ActualHeight, // height
+                (int) parent.ActualWidth, // renderWidth
+                (int) parent.ActualHeight, // renderHeight
                 hwndParent.Handle, // parent handle
                 IntPtr.Zero, // menu
                 IntPtr.Zero, // hInstance
@@ -233,15 +293,17 @@ namespace WpfUnmanagedOpenGL
             return new HandleRef(this, hWnd);
         }
 
-        protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
-        {
-            base.OnRenderSizeChanged(sizeInfo);
-        }
-
+        /// <summary>
+        /// stops render thread and performs destruction of window
+        /// </summary>
+        /// <param name="hwnd"></param>
         protected override void DestroyWindowCore(HandleRef hwnd)
         {
+            // stop render thread
             isRunning = false;
             renderThread.Join();
+
+            // destroy resources
             DestroyWindow(hwnd.Handle);
         }
     }

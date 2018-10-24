@@ -1,21 +1,22 @@
 #pragma once
-#include <cstdint>
-#include <basetsd.h>
+#include <string>
 
 extern "C"
 __declspec(dllexport)
-INT_PTR
+bool
 __cdecl
-create_context(INT_PTR hWnd, int width, int height);
-
-extern "C"
-__declspec(dllexport)
-void
-__cdecl
-init_gl();
+initialize();
 
 extern "C"
 __declspec(dllexport)
 bool
 __cdecl
 render();
+
+extern "C"
+__declspec(dllexport)
+const char*
+__cdecl
+get_error();
+
+void set_error(std::string error);

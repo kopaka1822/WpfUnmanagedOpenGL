@@ -15,7 +15,9 @@
             </MenuItem>
             <MenuItem Header="Tools"/>
         </Menu>
-        <!--<local:OpenGlHost DockPanel.Dock="Bottom"/>-->
-        <Border x:Name="BorderHost" Background="Blue"/>
+        <Border 
+            x:Name="BorderHost" 
+            Background="Blue"
+        />
     </DockPanel>
 </Window>

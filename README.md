@@ -1,5 +1,4 @@
-# WpfUnmanagedOpenGL
-C# Wpf Project Template with unmanaged C++ OpenGL
+# C# Wpf Project Template with unmanaged C++ OpenGL
 
 Demo Projects that uses C# WPF for the UI and unmanaged C++ OpenGL on a seperate thread. (Visual Studio 2017 Solution)
 

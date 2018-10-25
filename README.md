@@ -1,6 +1,7 @@
 # C# Wpf Project Template with unmanaged C++ OpenGL
 
-Demo Projects that uses C# WPF for the UI and unmanaged C++ OpenGL on a seperate thread. (Visual Studio 2017 Solution)
+Demo Projects that uses C# WPF for the UI and unmanaged C++ OpenGL on a seperate thread. (Visual Studio 2017 Solution).
+Note: Only the **x64** configuration is correctly configured!
 
 ## CppOpenGL
 

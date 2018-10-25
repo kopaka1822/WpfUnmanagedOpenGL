@@ -28,7 +28,6 @@ bool initialize()
 bool render()
 {
 	static float t = 0.0f;
-	glViewport(0, 0, 100, 100);
 	glClearColor(0.0f, t, 0.0f, 1.0f);
 	t += 0.01f;
 	if (t > 1.0f) t -= 1.0f;
